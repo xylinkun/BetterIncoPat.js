@@ -289,118 +289,126 @@
       let officialURL = "";
       let officialNumber = "";
 
-      // 只有当有申请号时才生成官网链接
-      if (currentAn) {
-        if (/^CN\d+(?:[ABCDSUY]\d?)?$/i.test(num)) {
-          openOffsiteBtn.textContent = "国家知识产权局";
-          officialNumber = num;
-          officialURL = `http://epub.cnipa.gov.cn/patent/${officialNumber}`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
-        } else if (/^TW([IM]?\d+)/i.test(num)) {
-          openOffsiteBtn.textContent = "台湾经济部智慧财产局";
-          officialNumber = num.match(/^TW([IM]?\d+)/i)[1];
-          officialURL = `https://tiponet.tipo.gov.tw/twpat3/twpatc/twpatkm?!!FRURL${officialNumber}`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
+      // 官方网站链接不一定需要申请号；只有 AN.url 下载才需要申请号
+      if (/^CN\d+(?:[ABCDSUY]\d?)?$/i.test(num)) {
+        openOffsiteBtn.textContent = "国家知识产权局";
+        officialNumber = num;
+        officialURL = `http://epub.cnipa.gov.cn/patent/${officialNumber}`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+      } else if (/^TW([IM]?\d+)/i.test(num)) {
+        openOffsiteBtn.textContent = "台湾经济部智慧财产局";
+        officialNumber = num.match(/^TW([IM]?\d+)/i)[1];
+        officialURL = `https://tiponet.tipo.gov.tw/twpat3/twpatc/twpatkm?!!FRURL${officialNumber}`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        if (currentAn) {
           anUrlDownloadBtn = createButton("AN.url下载", "", () => {
             CreateURLfileAndDownload(officialURL, currentAn);
           });
-        } else if (/^EP(\d+)/i.test(num)) {
-          openOffsiteBtn.textContent = "欧洲专利局";
-          officialNumber = currentAn;
-          officialURL = `https://worldwide.espacenet.com/patent/search?q=ap%3D${officialNumber}`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
-          anUrlDownloadBtn = createButton("AN.url下载", "", () => {
-            CreateURLfileAndDownload(officialURL, currentAn);
-          });
-        } else if (/^EU(\d{13})S/i.test(num)) {
-          openOffsiteBtn.textContent = "欧盟知识产权局";
-          officialNumber = currentPn.slice(2,-5) + "-" + currentPn.slice(-5, -1);
-          officialURL = `https://euipo.europa.eu/eSearch/#details/designs/${officialNumber}`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
+        }
+      } else if (/^EP(\d+)/i.test(num) && currentAn) {
+        openOffsiteBtn.textContent = "欧洲专利局";
+        officialNumber = currentAn;
+        officialURL = `https://worldwide.espacenet.com/patent/search?q=ap%3D${officialNumber}`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        anUrlDownloadBtn = createButton("AN.url下载", "", () => {
+          CreateURLfileAndDownload(officialURL, currentAn);
+        });
+      } else if (/^EU(\d{13})S/i.test(num)) {
+        openOffsiteBtn.textContent = "欧盟知识产权局";
+        officialNumber = currentPn.slice(2,-5) + "-" + currentPn.slice(-5, -1);
+        officialURL = `https://euipo.europa.eu/eSearch/#details/designs/${officialNumber}`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        if (currentAn) {
           anUrlDownloadBtn = createButton("AN.url下载", "", () => {
             CreateURLfileAndDownload(officialURL, currentPn.slice(0, -1));
           });
-        } else if (currentPnc.in_array("FR")) {
-          openOffsiteBtn.textContent = "法国国家工业产权局";
-          let officialNumber = currentPn.replace(/^FR(\d{7,8})[A-Z]\d?$/i, 'FR$1');
-          officialURL = `https://data.inpi.fr/brevets/${officialNumber}`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
+        }
+      } else if (currentPnc.in_array("FR")) {
+        openOffsiteBtn.textContent = "法国国家工业产权局";
+        let officialNumber = currentPn.replace(/^FR(\d{7,8})[A-Z]\d?$/i, 'FR$1');
+        officialURL = `https://data.inpi.fr/brevets/${officialNumber}`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        if (currentAn) {
           anUrlDownloadBtn = createButton("AN.url下载", "", () => {
             CreateURLfileAndDownload(officialURL, currentAn);
           });
-        } else if (/^RU(\d+)S/i.test(num)) {
-          openOffsiteBtn.textContent = "俄罗斯联邦知识产权局";
-          officialNumber = currentPn.slice(2,-1).padStart(8, "0");
-          officialURL = `https://www.fips.ru/cdfi/fips.dll?ty=29&docid=${officialNumber}&ki=S`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
+        }
+      } else if (/^RU(\d+)S/i.test(num)) {
+        openOffsiteBtn.textContent = "俄罗斯联邦知识产权局";
+        officialNumber = currentPn.slice(2,-1).padStart(8, "0");
+        officialURL = `https://www.fips.ru/cdfi/fips.dll?ty=29&docid=${officialNumber}&ki=S`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        if (currentAn) {
           anUrlDownloadBtn = createButton("AN.url下载", "", () => {
             CreateURLfileAndDownload(officialURL, "RU" + officialNumber + "S");
           });
-        } else if (/^US(\d+)/i.test(num)) {
-          openOffsiteBtn.textContent = "美国专利商标局";
-          const m = currentAn.match(/US(\d+)/i);
-          officialNumber = m ? m[1] : "000000";
-          officialURL = `https://globaldossier.uspto.gov/#/result/application/US/${officialNumber}/123456`;
+        }
+      } else if (/^US(\d+)/i.test(num) && currentAn) {
+        openOffsiteBtn.textContent = "美国专利商标局";
+        const m = currentAn.match(/US(\d+)/i);
+        officialNumber = m ? m[1] : "000000";
+        officialURL = `https://globaldossier.uspto.gov/#/result/application/US/${officialNumber}/123456`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        anUrlDownloadBtn = createButton("AN.url下载", "", () => {
+          CreateURLfileAndDownload(officialURL, currentAn);
+        });
+      } else if (/WO(?:[A-Z]{2})?(\d+)/i.test(num)) {
+        openOffsiteBtn.textContent = "世界知识产权组织";
+        const w = num.match(/WO(?:[A-Z]{2})?(\d+)/i);
+        officialNumber = w ? w[1] : "";
+        officialURL = `https://patentscope2.wipo.int/search/zh/detail.jsf?docId=WO${officialNumber}`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        if (currentAn) {
+          anUrlDownloadBtn = createButton("AN.url下载", "", () => {
+            CreateURLfileAndDownload(officialURL, currentAn);
+          });
+        }
+      } else if (currentPnc.in_array("KR") && currentAn) {
+        openOffsiteBtn.textContent = "韩国知识产权局";
+        officialNumber = currentAn.slice(2);
+        officialURL = `https://doi.org/10.8080/${officialNumber}`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        anUrlDownloadBtn = createButton("AN.url下载", "", () => {
+          CreateURLfileAndDownload(officialURL, currentAn);
+        });
+      } else if (currentPnc.in_array("CA") && currentAn) {
+        openOffsiteBtn.textContent = "加拿大知识产权局";
+        officialNumber = currentAn.slice(2);
+        officialURL = `https://www.ic.gc.ca/opic-cipo/cpd/eng/patent/${officialNumber}/summary.html`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        anUrlDownloadBtn = createButton("AN.url下载", "", () => {
+          CreateURLfileAndDownload(officialURL, currentAn);
+        });
+      } else if (currentPnc.in_array("AU") && currentAn) {
+        openOffsiteBtn.textContent = "澳大利亚知识产权局";
+        officialNumber = currentAn.slice(2);
+        officialURL = `http://pericles.ipaustralia.gov.au/ols/auspat/applicationDetails.do?applicationNo=${officialNumber}`;
+        openOffsiteBtn.onclick = () => window.open(officialURL);
+        anUrlDownloadBtn = createButton("AN.url下载", "", () => {
+          CreateURLfileAndDownload(officialURL, currentAn);
+        });
+      } else if (currentPnc.in_array("JP") && currentAn && (currentAn.match(/JP[TS]?-?(?:19|20)\d{2}\d{6}[U]?/i) || currentAd.match(/^\d{8}$/))) {
+        openOffsiteBtn.textContent = "日本特许厅";
+        const jpAnMatch = currentAn.match(/JP[TS]?-?(?<year>\d{2,4})(?<sn>\d{6})[U]?/i);
+        if (jpAnMatch) {
+          const yearInAn = jpAnMatch.groups.year;
+          const sn = jpAnMatch.groups.sn;
+          const year = (yearInAn.length === 4 && (/^(?:19|20)\d{2}/i.test(yearInAn))) ? yearInAn : currentAd.slice(0, 4);
+          const officialNumber = `JP-${year}-${sn}`;
+          let officialURL = `https://www.j-platpat.inpit.go.jp/c1801/PU/${officialNumber}/10/en`;
           openOffsiteBtn.onclick = () => window.open(officialURL);
           anUrlDownloadBtn = createButton("AN.url下载", "", () => {
             CreateURLfileAndDownload(officialURL, currentAn);
           });
-        } else if (/WO(?:[A-Z]{2})?(\d+)/i.test(num)) {
-          openOffsiteBtn.textContent = "世界知识产权组织";
-          const w = num.match(/WO(?:[A-Z]{2})?(\d+)/i);
-          officialNumber = w ? w[1] : "";
-          officialURL = `https://patentscope2.wipo.int/search/zh/detail.jsf?docId=WO${officialNumber}`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
-          anUrlDownloadBtn = createButton("AN.url下载", "", () => {
-            CreateURLfileAndDownload(officialURL, currentAn);
-          });
-        } else if (currentPnc.in_array("KR")) {
-          openOffsiteBtn.textContent = "韩国知识产权局";
-          officialNumber = currentAn.slice(2);
-          officialURL = `https://doi.org/10.8080/${officialNumber}`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
-          anUrlDownloadBtn = createButton("AN.url下载", "", () => {
-            CreateURLfileAndDownload(officialURL, currentAn);
-          });
-        } else if (currentPnc.in_array("CA")) {
-          openOffsiteBtn.textContent = "加拿大知识产权局";
-          officialNumber = currentAn.slice(2);
-          officialURL = `https://www.ic.gc.ca/opic-cipo/cpd/eng/patent/${officialNumber}/summary.html`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
-          anUrlDownloadBtn = createButton("AN.url下载", "", () => {
-            CreateURLfileAndDownload(officialURL, currentAn);
-          });
-        } else if (currentPnc.in_array("AU")) {
-          openOffsiteBtn.textContent = "澳大利亚知识产权局";
-          officialNumber = currentAn.slice(2);
-          officialURL = `http://pericles.ipaustralia.gov.au/ols/auspat/applicationDetails.do?applicationNo=${officialNumber}`;
-          openOffsiteBtn.onclick = () => window.open(officialURL);
-          anUrlDownloadBtn = createButton("AN.url下载", "", () => {
-            CreateURLfileAndDownload(officialURL, currentAn);
-          });
-        } else if (currentPnc.in_array("JP") && (currentAn.match(/JP[TS]?-?(?:19|20)\d{2}\d{6}[U]?/i) || currentAd.match(/^\d{8}$/))) {
-          openOffsiteBtn.textContent = "日本特许厅";
-          const jpAnMatch = currentAn.match(/JP[TS]?-?(?<year>\d{2,4})(?<sn>\d{6})[U]?/i);
-          if (jpAnMatch) {
-            const yearInAn = jpAnMatch.groups.year;
-            const sn = jpAnMatch.groups.sn;
-            const year = (yearInAn.length === 4 && (/^(?:19|20)\d{2}/i.test(yearInAn))) ? yearInAn : currentAd.slice(0, 4);
-            const officialNumber = `JP-${year}-${sn}`;
-            let officialURL = `https://www.j-platpat.inpit.go.jp/c1801/PU/${officialNumber}/10/en`;
-            openOffsiteBtn.onclick = () => window.open(officialURL);
-            anUrlDownloadBtn = createButton("AN.url下载", "", () => {
-              CreateURLfileAndDownload(officialURL, currentAn);
-            });
-          }
-        } else {
-          // 没有官网链接的情况，显示申请号按钮
-          openOffsiteBtn.remove();
-          createButton(currentAn, "点击复制申请号", () => GM_setClipboard(currentAn));
         }
       } else {
-        // 没有申请号，隐藏官方网站按钮
+        // 没有官网链接的情况：有申请号则显示申请号按钮；否则隐藏官方网站按钮
         openOffsiteBtn.remove();
-        console.log("BetterIncoPat: 未找到申请号，已隐藏官方网站按钮");
+        if (currentAn) {
+          createButton(currentAn, "点击复制申请号", () => GM_setClipboard(currentAn));
+        } else {
+          console.log("BetterIncoPat: 未找到申请号，且未匹配到可仅用公开号生成的官方网站链接");
+        }
       }
 
       // PN.url下载按钮
