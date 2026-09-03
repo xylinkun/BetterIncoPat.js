@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterIncopat
 // @namespace    http://incopat.com/
-// @version      0.9
+// @version      0.10
 // @description  去除incoPat检索结果页面、IPC分类查询页面两侧的空白，有效利用宽屏显示器；专利详情查看页，添加有用的复制按钮、跳过文件名选择对话框。
 // @author       You
 // @include      *incopat.com/*
@@ -30,9 +30,25 @@
     // 直接使用GM_download保存文件代替FileSaver.js
     GM_download({
       url: "data:text/plain;charset=utf-8," + encodeURIComponent(content),
-      name: `${num}.url`,
+      name: `${num}._url_`, // 扩展名设置为url会被浏览器自动改为download，因此使用_url_避免被改动
       saveAs: false // 不显示保存对话框
     });
+  }
+
+  function GetCnipaNumber(publicationNumber) {
+    const match = publicationNumber.match(/^CN(?<digits>\d+)(?:(?<suffix>[ABCDSUY])(?<suffixDigit>\d)?)?$/i);
+    if (!match || !match.groups.suffix) {
+      return publicationNumber;
+    }
+
+    const { digits, suffix } = match.groups;
+    // 此号码仅用于 CNIPA 静态链接，并非通用的专利号码转换：C/Y/D 尾缀（可带一位数字）一律移除；
+    // A/B/U/S 尾缀（可带一位数字）仅在主体数字不足 9 位时移除，目的是保证CNIPA静态链接的兼容性，使链接能够适用于老旧的专利公开公告号。
+    if (/^[CYD]$/i.test(suffix) || (/^[ABUS]$/i.test(suffix) && digits.length < 9)) {
+      return `CN${digits}`;
+    }
+
+    return publicationNumber;
   }
 
   function SkipPdfNameSelectDialog() {
@@ -292,9 +308,14 @@
       // 官方网站链接不一定需要申请号；只有 AN.url 下载才需要申请号
       if (/^CN\d+(?:[ABCDSUY]\d?)?$/i.test(num)) {
         openOffsiteBtn.textContent = "国家知识产权局";
-        officialNumber = num;
+        officialNumber = GetCnipaNumber(num);
         officialURL = `http://epub.cnipa.gov.cn/patent/${officialNumber}`;
         openOffsiteBtn.onclick = () => window.open(officialURL);
+        if (currentAn) {
+          anUrlDownloadBtn = createButton("AN.url下载", "", () => {
+            CreateURLfileAndDownload(officialURL, currentAn.replace(/^CN/i, "").replace(/\./g, ""));
+          });
+        }
       } else if (/^TW([IM]?\d+)/i.test(num)) {
         openOffsiteBtn.textContent = "台湾经济部智慧财产局";
         officialNumber = num.match(/^TW([IM]?\d+)/i)[1];
